@@ -1,0 +1,67 @@
+version: '3'
+
+services:
+  rgr-scrapping-api:
+    container_name: rgr-scrapping-api
+    image: rguasch/php
+    restart: unless-stopped
+    ports:
+      - "8040:8040"
+      - "9003:9003"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - .:/app:delegated
+    command: symfony serve --port=8040
+    networks:
+      - rgr_scrapping
+
+#  rgr-scrapping-database:
+#    image: mysql:8.0.29
+#    container_name: rgr-scrapping-database
+#    restart: unless-stopped
+#    volumes:
+#      - database-data:/var/lib/mysql
+#    ports:
+#      - "3306:3306"
+#    environment:
+#      MYSQL_DATABASE: 'rgr-scrapping'
+#      MYSQL_USER: 'user'
+#      MYSQL_PASSWORD: 'password'
+#      MYSQL_ROOT_PASSWORD: "root"
+#      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+#    healthcheck:
+#      test: [ "CMD", "mysqladmin", "--user=user", "--password=password", "--host=127.0.0.1", "ping", "--silent" ]
+#      interval: 2s
+#      timeout: 10s
+#      retries: 10
+#    networks:
+#      - rgr_scrapping
+
+###> doctrine/doctrine-bundle ###
+  rgr-scrapping-database:
+    image: postgres:14.3
+    container_name: rgr-scrapping-database
+    environment:
+      POSTGRES_DB: scrapping
+      # You should definitely change the password in production
+      POSTGRES_PASSWORD: root
+      POSTGRES_USER: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - database-data:/var/lib/postgresql/data:rw
+      # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
+      # - ./docker/db/data:/var/lib/postgresql/data:rw
+###< doctrine/doctrine-bundle ###
+    networks:
+      - rgr_scrapping
+
+volumes:
+  database-data:
+
+
+#Docker Networks
+networks:
+  rgr_scrapping:
+    driver: bridge
